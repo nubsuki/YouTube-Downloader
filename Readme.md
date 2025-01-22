@@ -17,7 +17,7 @@ A simple and easy-to-use application to download YouTube videos. Just follow the
 ### Notes:
 - After pressing the **Download** button, it might take a few seconds for the download to start.
 - If you want to download another video, make sure to repeat the process by pasting the new URL and pressing **Fetch Qualities** again.
-- Fetching video qualities can take **5–20 seconds**, depending on the video. Please be patient.
+- Fetching video qualities can take **5–20 seconds**, depending on the video.
 - If the application shows "Not Responding" during the quality-fetching process, don't worry—this is normal, and it will resume functioning once the fetching process is complete.
 
 ---
