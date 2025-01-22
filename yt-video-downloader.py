@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from yt_dlp import YoutubeDL
+import webbrowser
 
 def fetch_qualities():
     """Fetch available video qualities for the given URL."""
@@ -158,8 +159,14 @@ download_button = tk.Button(app, text="Download", command=download_video, bg="#5
 download_button.pack(pady=10)
 
 #Made by
-name_label = tk.Label(app, text="Nubsuki", font=("Arial", 6), fg="white", bg="#2e2e2e", padx=10, pady=10)
+name_label = tk.Label(app, text="Nubsuki", font=("Arial", 6), fg="white", bg="#2e2e2e", cursor="hand2", padx=10, pady=10)
 name_label.place(relx=1.0, rely=1.0, anchor="se")
+
+def open_github(event):
+    webbrowser.open("https://github.com/nubsuki/YT-video-Downloer")
+
+# Bind the label click to open GitHub
+name_label.bind("<Button-1>", open_github)
 
 # Run the application
 app.mainloop()
