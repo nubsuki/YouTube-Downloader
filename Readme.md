@@ -18,6 +18,8 @@ A simple and easy-to-use application to download YouTube videos. Just follow the
 - If you want to download another video, make sure to repeat the process by pasting the new URL and pressing **Fetch Qualities** again.
 - Fetching video qualities can take **5–20 seconds**, depending on the video. Please be patient.
 - If the application shows "Not Responding" during the quality-fetching process, don't worry—this is normal, and it will resume functioning once the fetching process is complete.
+- The first time you run the application, it might take a few moments to initialize. Please wait patiently.
+- Windows Defender Alert: When running the application for the first time, you may see a Windows Defender SmartScreen popup warning you about the file. This is normal for newly created executables. To proceed, click on More Info and then Run Anyway.
 
 ---
 
