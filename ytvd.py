@@ -89,7 +89,7 @@ def browse_folder():
 app = tk.Tk()
 app.title("YT Downloader")
 
-# Configure window dimensions and appearance
+# Configure window appearance
 window_width = 320
 window_height = 420
 app.configure(bg="#2e2e2e") 
@@ -158,15 +158,14 @@ download_size_log_label = tk.Label(app, textvariable=download_size_log, bg="#2e2
 download_button = tk.Button(app, text="Download", command=download_video, bg="#555555", fg="white")
 download_button.pack(pady=10)
 
-#Made by
+#Author label
 name_label = tk.Label(app, text="Nubsuki", font=("Arial", 6), fg="white", bg="#2e2e2e", cursor="hand2", padx=10, pady=10)
 name_label.place(relx=1.0, rely=1.0, anchor="se")
 
 def open_github(event):
-    webbrowser.open("https://github.com/nubsuki/YT-video-Downloer")
+    webbrowser.open("https://github.com/nubsuki/YouTube-Downloader")
 
 # Bind the label click to open GitHub
 name_label.bind("<Button-1>", open_github)
 
-# Run the application
 app.mainloop()
