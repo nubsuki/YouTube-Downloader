@@ -5,7 +5,7 @@
 
 A simple and easy-to-use application to download YouTube videos. Just follow these steps:
 
-![Downloader](ytdownloader.png)
+![Downloader](ytvd.png)
 
 ### How to Use:
 1. **Enter Video URL**: Copy the YouTube video URL and paste it into the URL input field.

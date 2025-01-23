@@ -85,30 +85,30 @@ def browse_folder():
     if folder:
         folder_path.set(folder)
 
-# Create the main application window
+# Initialize the main window with title
 app = tk.Tk()
 app.title("YT Downloader")
 
-# Set the window size
+# Configure window dimensions and appearance
 window_width = 320
 window_height = 420
 app.configure(bg="#2e2e2e") 
 
-# Get screen width and height
+# Calculate screen dimensions for centering
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
 
-# Calculate the position to center the window
+# Center window on screen
 position_top = int(screen_height / 2 - window_height / 2)
 position_left = int(screen_width / 2 - window_width / 2)
 
-# Set the window size and position
+# Apply window geometry settings
 app.geometry(f'{window_width}x{window_height}+{position_left}+{position_top}')
 
-# Disable resizing both horizontally and vertically
+# Lock window size
 app.resizable(False, False)
 
-# Determine the path to the icon.png
+# Load and set application icon
 if hasattr(sys, "_MEIPASS"):
     icon_path = os.path.join(sys._MEIPASS, "icon.png")
 else:
