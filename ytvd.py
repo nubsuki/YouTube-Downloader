@@ -34,7 +34,8 @@ def fetch_qualities():
                 # Update the quality dropdown with fetched qualities
                 quality_dropdown['values'] = qualities
                 quality_var.set(qualities[-1])  # Automatically set to the highest quality
-                download_button.config(state=tk.NORMAL)  # Enable download button
+                download_video_button.config(state=tk.NORMAL)  # Enable download video button
+                download_mp3_button.config(state=tk.NORMAL)  # Enable download MP3 button
         except Exception as e:
             messagebox.showerror("Error", f"Could not fetch qualities: {e}")
         finally:
@@ -64,7 +65,7 @@ def download_video():
         return
 
     ydl_opts = {
-        'format': f'bestvideo[height={video_quality.replace("p", "")}]+bestaudio/best',
+        'format': f'bestvideo[height={video_quality.replace("p", "")}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/best',
         'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
         'merge_output_format': 'mp4',
         'progress_hooks': [progress_hook],
@@ -72,7 +73,8 @@ def download_video():
 
     # Disable buttons during download
     fetch_button.config(state=tk.DISABLED)
-    download_button.config(state=tk.DISABLED)
+    download_video_button.config(state=tk.DISABLED)
+    download_mp3_button.config(state=tk.DISABLED)
 
     def download_thread():
         try:
@@ -95,9 +97,71 @@ def download_video():
 
             # Re-enable fetch button and disable download button
             fetch_button.config(state=tk.NORMAL)
-            download_button.config(state=tk.DISABLED)
+            download_video_button.config(state=tk.DISABLED)
+            download_mp3_button.config(state=tk.DISABLED)
 
     threading.Thread(target=download_thread, daemon=True).start()
+
+def download_mp3():
+    """Download the audio as MP3."""
+    video_url = url_entry.get()
+    output_folder = folder_path.get()
+
+    if not video_url.strip():
+        messagebox.showerror("Error", "Please enter a YouTube URL.")
+        return
+
+    if not output_folder:
+        messagebox.showerror("Error", "Please select a download folder.")
+        return
+
+    if not os.path.isdir(output_folder):
+        messagebox.showerror("Error", "Invalid download folder. Please select a valid directory.")
+        return
+
+    # Configure ydl_opts for MP3 download
+    ydl_opts = {
+        'format': 'bestaudio/best',  # Download the best available audio
+        'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),  # Output file template
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',  # Extract audio
+            'preferredcodec': 'mp3',      # Convert to MP3
+            'preferredquality': '192',    # Set audio quality (192kbps)
+        }],
+        'progress_hooks': [progress_hook],
+    }
+
+    # Disable buttons during download
+    fetch_button.config(state=tk.DISABLED)
+    download_video_button.config(state=tk.DISABLED)
+    download_mp3_button.config(state=tk.DISABLED)
+
+    def download_thread():
+        try:
+            progress_var.set(0)
+            progress_bar.update()
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([video_url])
+            messagebox.showinfo("Success", "MP3 downloaded successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
+        finally:
+            # Reset form fields (except download folder)
+            url_entry.delete(0, tk.END)
+            quality_dropdown.set('')
+            quality_dropdown['values'] = []
+            progress_var.set(0)
+            progress_bar.update()
+            download_size_log.set("")
+            download_size_log_label.pack_forget()
+
+            # Re-enable fetch button and disable download buttons
+            fetch_button.config(state=tk.NORMAL)
+            download_video_button.config(state=tk.DISABLED)
+            download_mp3_button.config(state=tk.DISABLED)
+
+    threading.Thread(target=download_thread, daemon=True).start()
+
 
 def progress_hook(d):
     """Update progress bar based on download progress."""
@@ -201,9 +265,17 @@ download_size_log = tk.StringVar()
 download_size_log.set("")
 download_size_log_label = tk.Label(app, textvariable=download_size_log, bg="#2e2e2e", fg="white")
 
-# Download button
-download_button = tk.Button(app, text="Download", command=download_video, bg="#555555", fg="white", state=tk.DISABLED)
-download_button.pack(pady=10)
+# Create a frame to hold the download buttons
+button_frame = tk.Frame(app, bg="#2e2e2e")
+button_frame.pack(pady=10)
+
+# Download video button
+download_video_button = tk.Button(button_frame, text="Download Video", command=download_video, bg="#555555", fg="white", state=tk.DISABLED)
+download_video_button.pack(side=tk.LEFT, padx=5)
+
+# Download MP3 button
+download_mp3_button = tk.Button(button_frame, text="Download MP3", command=download_mp3, bg="#555555", fg="white", state=tk.DISABLED)
+download_mp3_button.pack(side=tk.LEFT, padx=5)
 
 # Author label
 name_label = tk.Label(app, text="Nubsuki", font=("Arial", 6), fg="white", bg="#2e2e2e", cursor="hand2", padx=10, pady=10)
