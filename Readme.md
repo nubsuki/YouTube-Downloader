@@ -16,11 +16,6 @@ A simple and easy-to-use application to download YouTube videos and audios. Just
 
 ---
 
-### Why I Made This
-I created this application because most websites and applications for downloading YouTube videos require payment or subscriptions. As a hobbyist video editor, I wanted a free and straightforward solution. Although I don't have much experience with Python, I managed to build this thanks to the little help of AI.
-
----
-
 ### Latest Release
 You can download the latest version of the application from the **Releases** section on this GitHub repository. Simply download and run the executable to get started.
 
