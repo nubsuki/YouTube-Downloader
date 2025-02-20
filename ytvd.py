@@ -6,6 +6,9 @@ from yt_dlp import YoutubeDL
 import webbrowser
 import threading
 
+# Detect platform and set FFmpeg path
+ffmpeg_path = os.path.join(os.path.dirname(__file__), "ffmpeg", "bin")
+
 def fetch_qualities():
     """Fetch available video qualities for the given URL."""
     video_url = url_entry.get()
@@ -65,6 +68,7 @@ def download_video():
         return
 
     ydl_opts = {
+        'ffmpeg_location': ffmpeg_path,
         'format': f'bestvideo[height={video_quality.replace("p", "")}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/best',
         'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
         'merge_output_format': 'mp4',
@@ -121,6 +125,7 @@ def download_mp3():
 
     # Configure ydl_opts for MP3 download
     ydl_opts = {
+        'ffmpeg_location': ffmpeg_path,
         'format': 'bestaudio/best',  # Download the best available audio
         'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),  # Output file template
         'postprocessors': [{
