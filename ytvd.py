@@ -22,7 +22,10 @@ def fetch_qualities():
     quality_dropdown.set('Fetching qualities...')
 
     def fetch_thread():
-        ydl_opts = {'quiet': True}
+        ydl_opts = {
+            'quiet': True,
+            'noplaylist': True 
+        }
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=False)
@@ -73,6 +76,7 @@ def download_video():
         'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
         'merge_output_format': 'mp4',
         'progress_hooks': [progress_hook],
+        'noplaylist': True,
     }
 
     # Disable buttons during download
@@ -134,6 +138,7 @@ def download_mp3():
             'preferredquality': '192',    # Set audio quality (192kbps)
         }],
         'progress_hooks': [progress_hook],
+        'noplaylist': True,
     }
 
     # Disable buttons during download
