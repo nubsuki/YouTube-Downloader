@@ -8,7 +8,7 @@ A simple and easy-to-use application to download YouTube videos and audios. Just
 ![Downloader](ytvd.png)
 
 ### How to Use:
-1. **Enter Video URL**: Copy the YouTube video URL and paste it into the URL input field.
+1. **Enter Video URL**: Copy the YouTube video URL and paste it into the URL input field or press "Paste".
 2. **Fetch Qualities**: Click the **Fetch Qualities** button. Wait until the button becomes active (black) again, indicating that it has finished fetching the available video qualities.
 3. **Select Quality**: Choose your desired video quality from the dropdown menu.
 4. **Choose Download Location**: Select the folder where you want to save the downloaded video.
