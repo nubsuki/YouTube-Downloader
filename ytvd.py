@@ -31,7 +31,7 @@ def fetch_qualities():
                 info = ydl.extract_info(video_url, download=False)
                 formats = info.get('formats', [])
                 qualities = sorted(
-                    set(f"{fmt['height']}p" for fmt in formats if fmt.get('height') and fmt.get('ext') == 'mp4'),
+                    set(f"{fmt['height']}p" for fmt in formats if fmt.get('height')),
                     key=lambda x: int(x.replace('p', ''))
                 )
                 if not qualities:
@@ -72,7 +72,7 @@ def download_video():
 
     ydl_opts = {
         'ffmpeg_location': ffmpeg_path,
-        'format': f'bestvideo[height={video_quality.replace("p", "")}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/best',
+        'format': f'bestvideo[height={video_quality.replace("p", "")}]+bestaudio/best[height={video_quality.replace("p", "")}]/best',
         'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
         'merge_output_format': 'mp4',
         'progress_hooks': [progress_hook],
@@ -130,7 +130,7 @@ def download_mp3():
     # Configure ydl_opts for MP3 download
     ydl_opts = {
         'ffmpeg_location': ffmpeg_path,
-        'format': 'bestaudio/best',  # Download the best available audio
+        'format': 'bestaudio',  # Download the best available audio
         'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),  # Output file template
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',  # Extract audio
@@ -150,6 +150,7 @@ def download_mp3():
         try:
             progress_var.set(0)
             progress_bar.update()
+
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([video_url])
             messagebox.showinfo("Success", "MP3 downloaded successfully!")
