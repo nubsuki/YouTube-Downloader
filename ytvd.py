@@ -7,7 +7,8 @@ import webbrowser
 import threading
 
 # Detect platform and set FFmpeg path
-ffmpeg_path = os.path.join(os.path.dirname(__file__), "ffmpeg", "bin")
+base_path = getattr(sys, "_MEIPASS", os.path.dirname(__file__))
+ffmpeg_path = os.path.join(base_path, "ffmpeg", "bin")
 
 def fetch_qualities():
     """Fetch available video qualities for the given URL."""
@@ -73,7 +74,7 @@ def download_video():
     ydl_opts = {
         'ffmpeg_location': ffmpeg_path,
         'format': f'bestvideo[height={video_quality.replace("p", "")}]+bestaudio/best[height={video_quality.replace("p", "")}]/best',
-        'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
+        'outtmpl': os.path.join(output_folder, '%(title)s (%(height)sp).%(ext)s'),
         'merge_output_format': 'mp4',
         'progress_hooks': [progress_hook],
         'noplaylist': True,
