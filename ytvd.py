@@ -73,7 +73,7 @@ def download_video():
 
     ydl_opts = {
         'ffmpeg_location': ffmpeg_path,
-        'format': f'bestvideo[height={video_quality.replace("p", "")}]+bestaudio/best[height={video_quality.replace("p", "")}]/best',
+        'format': f'bestvideo[height={video_quality.replace("p", "")}][vcodec^=avc]+bestaudio[ext=m4a]/bestvideo[height={video_quality.replace("p", "")}]+bestaudio/best[height={video_quality.replace("p", "")}]/best',
         'outtmpl': os.path.join(output_folder, '%(title)s (%(height)sp).%(ext)s'),
         'merge_output_format': 'mp4',
         'progress_hooks': [progress_hook],
