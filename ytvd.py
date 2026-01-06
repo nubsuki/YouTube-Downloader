@@ -245,8 +245,22 @@ except Exception as e:
 
 # URL input
 tk.Label(app, text="YouTube URL:", bg="#2e2e2e", fg="white").pack(pady=5)
-url_entry = tk.Entry(app, width=50, bg="#555555", fg="white")
-url_entry.pack(pady=5)
+
+url_frame = tk.Frame(app, bg="#2e2e2e")
+url_frame.pack(pady=5)
+
+url_entry = tk.Entry(url_frame, width=35, bg="#555555", fg="white")
+url_entry.pack(side=tk.LEFT, padx=5)
+
+def paste_url():
+    try:
+        url_entry.delete(0, tk.END)
+        url_entry.insert(0, app.clipboard_get())
+    except tk.TclError:
+        pass
+
+paste_button = tk.Button(url_frame, text="Paste", command=paste_url, bg="#555555", fg="white")
+paste_button.pack(side=tk.LEFT)
 
 # Fetch qualities button
 fetch_button = tk.Button(app, text="Fetch Qualities", command=fetch_qualities, bg="#555555", fg="white")
