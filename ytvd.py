@@ -9,6 +9,10 @@ import threading
 # Detect platform and set FFmpeg path
 base_path = getattr(sys, "_MEIPASS", os.path.dirname(__file__))
 ffmpeg_path = os.path.join(base_path, "ffmpeg", "bin")
+deno_dir = os.path.join(base_path, "deno", "bin")
+if os.path.isdir(deno_dir):
+    os.environ["PATH"] = deno_dir + os.pathsep + os.environ.get("PATH", "")
+ 
 
 def fetch_qualities():
     """Fetch available video qualities for the given URL."""
