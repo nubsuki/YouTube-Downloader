@@ -29,11 +29,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt pillow
-
-      # ── Rebuild multi-size icons ─────────────────────────────────────────────
-      - name: Build multi-size icons
-        run: python build_icons.py
+        run: pip install -r requirements.txt
 
       # ── Deno (latest) ───────────────────────────────────────────────────────
       - name: Download latest Deno for Windows
@@ -47,19 +43,16 @@ jobs:
           Remove-Item "deno.zip"
           Write-Host "Deno version: $(& deno\bin\deno.exe --version)"
 
-      # ── FFmpeg (BtbN builds via GitHub releases) ─────────────────────────────
+      # ── FFmpeg (direct permanent URL from gyan.dev) ────────────────────────────
       - name: Download FFmpeg essentials
         shell: pwsh
         run: |
-          $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
-          $asset = $release.assets | Where-Object { $_.name -like "*win64-gpl-essentials*" -and $_.name -like "*.zip" } | Select-Object -First 1
-          Write-Host "Downloading FFmpeg: $($asset.name)"
-          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "ffmpeg.zip"
-          Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_tmp" -Force
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z" -OutFile "ffmpeg.7z"
+          & "C:\Program Files\7-Zip\7z.exe" x ffmpeg.7z -offmpeg_tmp -y | Out-Null
           $inner = Get-ChildItem "ffmpeg_tmp" -Directory | Select-Object -First 1
           New-Item -ItemType Directory -Force -Path "ffmpeg\bin" | Out-Null
           Copy-Item "$($inner.FullName)\bin\*" -Destination "ffmpeg\bin" -Recurse -Force
-          Remove-Item "ffmpeg.zip", "ffmpeg_tmp" -Recurse -Force
+          Remove-Item "ffmpeg.7z", "ffmpeg_tmp" -Recurse -Force
           Write-Host "FFmpeg version: $(& ffmpeg\bin\ffmpeg.exe -version | Select-Object -First 1)"
 
       # ── PyInstaller build ────────────────────────────────────────────────────
