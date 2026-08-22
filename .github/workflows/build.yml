@@ -43,18 +43,6 @@ jobs:
           Remove-Item "deno.zip"
           Write-Host "Deno version: $(& deno\bin\deno.exe --version)"
 
-      # ── FFmpeg (direct permanent URL from gyan.dev) ────────────────────────────
-      - name: Download FFmpeg essentials
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z" -OutFile "ffmpeg.7z"
-          & "C:\Program Files\7-Zip\7z.exe" x ffmpeg.7z -offmpeg_tmp -y | Out-Null
-          $inner = Get-ChildItem "ffmpeg_tmp" -Directory | Select-Object -First 1
-          New-Item -ItemType Directory -Force -Path "ffmpeg\bin" | Out-Null
-          Copy-Item "$($inner.FullName)\bin\*" -Destination "ffmpeg\bin" -Recurse -Force
-          Remove-Item "ffmpeg.7z", "ffmpeg_tmp" -Recurse -Force
-          Write-Host "FFmpeg version: $(& ffmpeg\bin\ffmpeg.exe -version | Select-Object -First 1)"
-
       # ── PyInstaller build ────────────────────────────────────────────────────
       - name: Build executable with PyInstaller
         run: >

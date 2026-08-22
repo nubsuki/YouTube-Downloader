@@ -2,5 +2,4 @@
 /dist
 /build
 /deno
-/ffmpeg
 test_deno.py
