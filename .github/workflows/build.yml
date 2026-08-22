@@ -1,0 +1,99 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag for the release (e.g. v2.2.2)"
+        required: false
+        default: "manual"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Python ──────────────────────────────────────────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt pillow
+
+      # ── Rebuild multi-size icons ─────────────────────────────────────────────
+      - name: Build multi-size icons
+        run: python build_icons.py
+
+      # ── Deno (latest) ───────────────────────────────────────────────────────
+      - name: Download latest Deno for Windows
+        shell: pwsh
+        run: |
+          $release = Invoke-RestMethod "https://api.github.com/repos/denoland/deno/releases/latest"
+          $asset = $release.assets | Where-Object { $_.name -eq "deno-x86_64-pc-windows-msvc.zip" }
+          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "deno.zip"
+          New-Item -ItemType Directory -Force -Path "deno\bin" | Out-Null
+          Expand-Archive -Path "deno.zip" -DestinationPath "deno\bin" -Force
+          Remove-Item "deno.zip"
+          Write-Host "Deno version: $(& deno\bin\deno.exe --version)"
+
+      # ── FFmpeg (essentials build from gyan.dev) ──────────────────────────────
+      - name: Download FFmpeg essentials
+        shell: pwsh
+        run: |
+          $page = Invoke-RestMethod "https://www.gyan.dev/ffmpeg/builds/release-version"
+          $version = $page.Trim()
+          $url = "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-${version}-essentials_build.zip"
+          Write-Host "Downloading FFmpeg $version from $url"
+          Invoke-WebRequest -Uri $url -OutFile "ffmpeg.zip"
+          Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_tmp" -Force
+          $inner = Get-ChildItem "ffmpeg_tmp" -Directory | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path "ffmpeg\bin" | Out-Null
+          Copy-Item "$($inner.FullName)\bin\*" -Destination "ffmpeg\bin" -Recurse -Force
+          Remove-Item "ffmpeg.zip", "ffmpeg_tmp" -Recurse -Force
+          Write-Host "FFmpeg version: $(& ffmpeg\bin\ffmpeg.exe -version | Select-Object -First 1)"
+
+      # ── PyInstaller build ────────────────────────────────────────────────────
+      - name: Build executable with PyInstaller
+        run: >
+          pyinstaller
+          --onefile
+          --noconsole
+          "--add-data=ffmpeg;ffmpeg"
+          "--add-data=deno;deno"
+          "--add-data=icon.png;."
+          "--add-data=icon.ico;."
+          "--add-data=favicon.ico;."
+          --icon="favicon.ico"
+          --name="YouTube_Downloader"
+          ytvd.py
+
+      # ── Package release artifact ─────────────────────────────────────────────
+      - name: Package into ZIP
+        shell: pwsh
+        run: |
+          $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ github.event.inputs.tag }}" } else { "${{ github.ref_name }}" }
+          Compress-Archive -Path "dist\YouTube_Downloader.exe" -DestinationPath "YouTube_Downloader_${tag}_windows.zip"
+          echo "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
+
+      # ── Create GitHub Release ────────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "YouTube-Downloader ${{ env.RELEASE_TAG }}"
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            YouTube_Downloader_${{ env.RELEASE_TAG }}_windows.zip
