@@ -44,7 +44,7 @@ def check_for_updates():
             if asset_url:
                 app.after(0, lambda: show_update_banner(latest_tag, asset_url))
     except Exception:
-        pass  # Silently ignore — no internet, rate limit, etc.
+        pass  # Silently ignore
 
 
 def show_update_banner(latest_tag, asset_url):
@@ -410,7 +410,7 @@ download_video_button.pack(side=tk.LEFT, padx=5)
 download_mp3_button = tk.Button(button_frame, text="Download MP3", command=download_mp3, bg="#555555", fg="white", state=tk.DISABLED)
 download_mp3_button.pack(side=tk.LEFT, padx=5)
 
-# Update banner (hidden by default, shown when an update is found)
+# Update banner
 update_banner = tk.Frame(app, bg="#1a6b3c", pady=4)
 update_label = tk.Label(update_banner, text="", bg="#1a6b3c", fg="white", font=("Arial", 8))
 update_label.pack(side=tk.LEFT, padx=8)
