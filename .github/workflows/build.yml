@@ -58,12 +58,12 @@ jobs:
           --name="YouTube_Downloader"
           ytvd.py
 
-      # ── Package release artifact ─────────────────────────────────────────────
-      - name: Package into ZIP
+      # ── Rename exe with version tag ───────────────────────────────────────────
+      - name: Rename exe
         shell: pwsh
         run: |
           $tag = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ github.event.inputs.tag }}" } else { "${{ github.ref_name }}" }
-          Compress-Archive -Path "dist\YouTube_Downloader.exe" -DestinationPath "YouTube_Downloader_${tag}_windows.zip"
+          Rename-Item -Path "dist\YouTube_Downloader.exe" -NewName "YouTube_Downloader_${tag}.exe"
           echo "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
 
       # ── Create GitHub Release ────────────────────────────────────────────────
@@ -76,4 +76,4 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            YouTube_Downloader_${{ env.RELEASE_TAG }}_windows.zip
+            dist/YouTube_Downloader_${{ env.RELEASE_TAG }}.exe

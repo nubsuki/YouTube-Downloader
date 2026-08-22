@@ -5,6 +5,15 @@ from tkinter import ttk, messagebox, filedialog
 from yt_dlp import YoutubeDL
 import webbrowser
 import threading
+import urllib.request
+import urllib.error
+import json
+import tempfile
+import subprocess
+
+__version__ = "v2.2.2"
+GITHUB_REPO = "nubsuki/YouTube-Downloader"
+API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
 # Detect platform and set FFmpeg path
 base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
@@ -14,7 +23,99 @@ if os.path.isdir(deno_dir):
     os.environ["PATH"] = deno_dir + os.pathsep + os.environ.get("PATH", "")
 if os.path.isdir(ffmpeg_path):
     os.environ["PATH"] = ffmpeg_path + os.pathsep + os.environ.get("PATH", "")
- 
+
+def check_for_updates():
+    """Background thread: check GitHub for a newer release."""
+    # Only auto-update when running as a compiled exe
+    if not getattr(sys, "frozen", False):
+        return
+    try:
+        req = urllib.request.Request(API_URL, headers={"User-Agent": "YTDownloader-Updater"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read())
+        latest_tag = data.get("tag_name", "")
+        if latest_tag and latest_tag != __version__:
+            # Find the windows exe asset
+            asset_url = None
+            for asset in data.get("assets", []):
+                if asset["name"].endswith(".exe"):
+                    asset_url = asset["browser_download_url"]
+                    break
+            if asset_url:
+                app.after(0, lambda: show_update_banner(latest_tag, asset_url))
+    except Exception:
+        pass  # Silently ignore — no internet, rate limit, etc.
+
+
+def show_update_banner(latest_tag, asset_url):
+    """Show a dismissible update notification banner."""
+    global update_banner
+    update_label.config(text=f"Update {latest_tag} available!")
+    update_banner.pack(side=tk.BOTTOM, fill=tk.X)
+    app.geometry(f"{window_width}x{window_height + 36}+{position_left}+{position_top}")
+
+    def on_update():
+        update_btn.config(state=tk.DISABLED, text="Downloading...")
+        threading.Thread(target=lambda: download_and_apply(asset_url), daemon=True).start()
+
+    def on_dismiss():
+        update_banner.pack_forget()
+        app.geometry(f"{window_width}x{window_height}+{position_left}+{position_top}")
+
+    update_btn.config(command=on_update, state=tk.NORMAL, text="Update Now")
+    dismiss_btn.config(command=on_dismiss)
+
+
+def download_and_apply(asset_url):
+    """Download the new exe directly and apply the update."""
+    try:
+        tmp_dir = tempfile.mkdtemp()
+        new_exe_path = os.path.join(tmp_dir, "YouTube_Downloader_new.exe")
+
+        req = urllib.request.Request(asset_url, headers={"User-Agent": "YTDownloader-Updater"})
+        with urllib.request.urlopen(req) as resp, open(new_exe_path, "wb") as f:
+            total = int(resp.headers.get("Content-Length", 0))
+            downloaded = 0
+            block = 8192
+            while True:
+                chunk = resp.read(block)
+                if not chunk:
+                    break
+                f.write(chunk)
+                downloaded += len(chunk)
+                if total:
+                    pct = min(downloaded / total * 100, 100)
+                    app.after(0, lambda p=pct: progress_var.set(p))
+
+        current_exe = sys.executable
+        apply_update(current_exe, new_exe_path)
+
+    except Exception as e:
+        app.after(0, lambda: messagebox.showerror("Update Failed", str(e)))
+        app.after(0, lambda: update_btn.config(state=tk.NORMAL, text="Update Now"))
+        app.after(0, lambda: progress_var.set(0))
+
+
+def apply_update(current_exe, new_exe_path):
+    """Write a PowerShell updater script and launch it, then exit."""
+    ps_script = f"""
+$pid_to_wait = {os.getpid()}
+try {{ Wait-Process -Id $pid_to_wait -Timeout 10 -ErrorAction SilentlyContinue }} catch {{}}
+Start-Sleep -Milliseconds 500
+Copy-Item -Path '{new_exe_path}' -Destination '{current_exe}' -Force
+Start-Process -FilePath '{current_exe}'
+"""
+    script_path = os.path.join(tempfile.gettempdir(), "yt_updater.ps1")
+    with open(script_path, "w") as f:
+        f.write(ps_script)
+
+    subprocess.Popen(
+        ["powershell", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden",
+         "-File", script_path],
+        creationflags=subprocess.CREATE_NO_WINDOW
+    )
+    app.after(0, app.destroy)
+
 
 def fetch_qualities():
     """Fetch available video qualities for the given URL."""
@@ -309,11 +410,25 @@ download_video_button.pack(side=tk.LEFT, padx=5)
 download_mp3_button = tk.Button(button_frame, text="Download MP3", command=download_mp3, bg="#555555", fg="white", state=tk.DISABLED)
 download_mp3_button.pack(side=tk.LEFT, padx=5)
 
+# Update banner (hidden by default, shown when an update is found)
+update_banner = tk.Frame(app, bg="#1a6b3c", pady=4)
+update_label = tk.Label(update_banner, text="", bg="#1a6b3c", fg="white", font=("Arial", 8))
+update_label.pack(side=tk.LEFT, padx=8)
+update_btn = tk.Button(update_banner, text="Update Now", bg="#25a35f", fg="white",
+                       font=("Arial", 8, "bold"), relief=tk.FLAT, padx=6, pady=1)
+update_btn.pack(side=tk.LEFT, padx=4)
+dismiss_btn = tk.Button(update_banner, text="✕", bg="#1a6b3c", fg="#aaffcc",
+                        font=("Arial", 8), relief=tk.FLAT, padx=4, pady=1)
+dismiss_btn.pack(side=tk.RIGHT, padx=4)
+
 # Author label
 name_label = tk.Label(app, text="Nubsuki", font=("Arial", 6), fg="white", bg="#2e2e2e", cursor="hand2", padx=10, pady=10)
 name_label.place(relx=1.0, rely=1.0, anchor="se")
 
 # Bind the label click to open GitHub
 name_label.bind("<Button-1>", open_github)
+
+# Start background update check
+threading.Thread(target=check_for_updates, daemon=True).start()
 
 app.mainloop()

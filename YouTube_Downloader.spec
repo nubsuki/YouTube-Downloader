@@ -4,7 +4,7 @@
 a = Analysis(
     ['ytvd.py'],
     pathex=[],
-    binaries=[('deno\\bin\\deno.exe', 'deno\\bin')],
+    binaries=[('deno/bin/deno.exe', 'deno/bin')],
     datas=[('ffmpeg', 'ffmpeg'), ('icon.png', '.'), ('icon.ico', '.'), ('favicon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
