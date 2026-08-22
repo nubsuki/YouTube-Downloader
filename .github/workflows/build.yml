@@ -47,15 +47,14 @@ jobs:
           Remove-Item "deno.zip"
           Write-Host "Deno version: $(& deno\bin\deno.exe --version)"
 
-      # ── FFmpeg (essentials build from gyan.dev) ──────────────────────────────
+      # ── FFmpeg (BtbN builds via GitHub releases) ─────────────────────────────
       - name: Download FFmpeg essentials
         shell: pwsh
         run: |
-          $page = Invoke-RestMethod "https://www.gyan.dev/ffmpeg/builds/release-version"
-          $version = $page.Trim()
-          $url = "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-${version}-essentials_build.zip"
-          Write-Host "Downloading FFmpeg $version from $url"
-          Invoke-WebRequest -Uri $url -OutFile "ffmpeg.zip"
+          $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+          $asset = $release.assets | Where-Object { $_.name -like "*win64-gpl-essentials*" -and $_.name -like "*.zip" } | Select-Object -First 1
+          Write-Host "Downloading FFmpeg: $($asset.name)"
+          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "ffmpeg.zip"
           Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_tmp" -Force
           $inner = Get-ChildItem "ffmpeg_tmp" -Directory | Select-Object -First 1
           New-Item -ItemType Directory -Force -Path "ffmpeg\bin" | Out-Null
